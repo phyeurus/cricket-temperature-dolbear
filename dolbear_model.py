@@ -7,9 +7,7 @@ from sklearn.model_selection import train_test_split, cross_val_score
 import scipy.stats as stats
 import joblib
 
-# ------------------------------------------------------------
-# 1. Load and clean data
-# ------------------------------------------------------------
+
 raw_data = [
     [19, 88.59999847], [16, 71.59999847], [22, 93.30000305], [17, 84.30000305],
     [19, 80.59999847], [19, 75.19999695], [17, 6969999695], [18, 82], [15, 69.4000153],
@@ -36,7 +34,6 @@ raw_data = [
 
 df = pd.DataFrame(raw_data, columns=['temperature_c', 'chirps_per_minute'])
 
-# Remove impossible values
 df = df[(df['temperature_c'] >= 0) & (df['temperature_c'] <= 50)]
 df = df[df['chirps_per_minute'] < 200]
 
@@ -46,16 +43,13 @@ print(df.head())
 X = df[['chirps_per_minute']]
 y = df['temperature_c']
 
-# ------------------------------------------------------------
-# 2. Train / test split
-# ------------------------------------------------------------
+
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# ------------------------------------------------------------
-# 3. Train linear regression model
-# ------------------------------------------------------------
+
+
 model = LinearRegression()
 model.fit(X_train, y_train)
 
@@ -65,9 +59,7 @@ slope = model.coef_[0]
 print(f"\nLinear regression equation:")
 print(f"Temperature = {intercept:.4f} + {slope:.4f} * chirps_per_minute")
 
-# ------------------------------------------------------------
-# 4. Evaluation on test set
-# ------------------------------------------------------------
+
 y_test_pred = model.predict(X_test)
 r2_test = r2_score(y_test, y_test_pred)
 mae_test = mean_absolute_error(y_test, y_test_pred)
@@ -76,15 +68,14 @@ print(f"\nTest set evaluation:")
 print(f"R² = {r2_test:.4f}")
 print(f"MAE = {mae_test:.2f} deg C")
 
-# ------------------------------------------------------------
-# 5. Cross-validation (5-fold)
-# ------------------------------------------------------------
+
+ 
+ 
 cv_scores = cross_val_score(model, X, y, cv=5, scoring='r2')
 print(f"\n5-fold cross-validation R²: mean = {cv_scores.mean():.4f} +/- {cv_scores.std():.4f}")
-
-# ------------------------------------------------------------
-# 6. Residual plot (on full data, but can use training)
-# ------------------------------------------------------------
+ 
+ 
+ 
 y_full_pred = model.predict(X)
 residuals = y - y_full_pred
 
@@ -97,9 +88,8 @@ plt.title('Residual plot (linear model check)')
 plt.grid(True, alpha=0.3)
 plt.show()
 
-# ------------------------------------------------------------
-# 7. Prediction interval function (for one new chirp rate)
-# ------------------------------------------------------------
+ 
+
 def prediction_interval(model, X_train, y_train, x0, confidence=0.95):
     """
     Returns (prediction, lower_bound, upper_bound) for a single x0.
@@ -120,16 +110,15 @@ def prediction_interval(model, X_train, y_train, x0, confidence=0.95):
     
     return y_pred, y_pred - margin, y_pred + margin
 
-# Example for 130 chirps/min
+ 
 x_new = 130
 pred, lower, upper = prediction_interval(model, X_train, y_train, x_new)
 print(f"\nPrediction for {x_new} chirps/min:")
 print(f"  Point estimate: {pred:.2f} deg C")
 print(f"  95% prediction interval: [{lower:.2f}, {upper:.2f}] deg C")
 
-# ------------------------------------------------------------
-# 8. Helper function for different time units (15 sec, sec)
-# ------------------------------------------------------------
+ 
+
 def predict_temp_from_chirps(chirps, time_unit='minute'):
     """
     chirps : number of chirps counted
@@ -148,20 +137,17 @@ def predict_temp_from_chirps(chirps, time_unit='minute'):
     temp_pred = model.predict([[chirps_per_min]])[0]
     return temp_pred
 
-# Example: 20 chirps in 15 seconds
+ 
 temp_15sec = predict_temp_from_chirps(20, '15sec')
 print(f"20 chirps in 15 seconds -> {temp_15sec:.2f} deg C")
 
-# ------------------------------------------------------------
-# 9. Save the trained model for later use
-# ------------------------------------------------------------
+
+ 
+
 joblib.dump(model, 'dolbear_cricket_model.pkl')
 print("\nModel saved as 'dolbear_cricket_model.pkl'")
-# To load later: model = joblib.load('dolbear_cricket_model.pkl')
+ 
 
-# ------------------------------------------------------------
-# 10. (Optional) Visualize the regression line with training data
-# ------------------------------------------------------------
 plt.figure(figsize=(10,6))
 plt.scatter(X_train, y_train, alpha=0.6, label='Training data', color='green')
 plt.scatter(X_test, y_test, alpha=0.6, label='Test data', color='blue')
